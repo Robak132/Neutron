@@ -145,7 +145,7 @@ class Game:
                 board.print_board()
                 board.print_all_max_paths(board.get_pawns_by_id(3)[0])
                 _target = input("Choose target for neutron:\n")
-                _target = _target.split(", ")
+                _target = _target.replace(" ", "").split(",")
                 target = [int(coordinate) for coordinate in _target]
                 target = tuple(target)
                 active_player.move_neutron(target, board)
@@ -155,13 +155,13 @@ class Game:
             board.print_board()
             active_player.print_possible_pawns(board)
             _pawn = input("Choose pawn:\n")
-            _pawn = _pawn.split(", ")
+            _pawn = _pawn.replace(" ", "").split(",")
             pawn = [int(coordinate) for coordinate in _pawn]
             pawn = tuple(pawn)
 
             board.print_all_max_paths(pawn)
             _target = input("Choose target:\n")
-            _target = _target.split(", ")
+            _target = _target.replace(" ", "").split(",")
             target = [int(coordinate) for coordinate in _target]
             target = tuple(target)
             active_player.move_pawn(pawn, target, board)
