@@ -8,7 +8,7 @@ class Board:
     """
     def __init__(self, custom=None):
         """
-        :custom list of lists: sets custom board for game.
+        :param list of lists custom: sets custom board for game.
         """
         if custom is None:
             self.reset_board()
@@ -24,7 +24,13 @@ class Board:
         self.board[2] = [0, 0, 3, 0, 0]
         self.board[4] = [1, 1, 1, 1, 1]
 
-    def move(self, origin_coordinates, target_coordinates):
+    def replace(self, origin_coordinates, target_coordinates):
+        """
+        Switches place of two elements on the board.
+
+        :param tuple of ints origin_coordinates: Coordinates of first element
+        :param tuple of ints target_coordinates: Coordinates of second element
+        """
         origin_row, origin_column = origin_coordinates
         target_row, target_column = target_coordinates
 
@@ -35,7 +41,8 @@ class Board:
     def get_pawns_by_id(self, id):
         """
         Returns coordinates of all pawns with given id.
-        :param id int: id of pawns you are searching for
+
+        :param int id: id of pawns you are searching for
         """
         coordinates = []
         for row in range(0, len(self.board)):
@@ -45,20 +52,21 @@ class Board:
         return coordinates
 
     def get_pawn(self, coordinates):
-        row, column = coordinates
+        """
+        Returns id of the element with given coordiantes.
+        :param coordinates tuple of ints: coordinates of element
+        """
+        _row, _column = coordinates
 
-        return self.board[row][column]
+        return self.board[_row][_column]
 
     def get_all_max_paths(self, origin_coordinates):
-        paths = []
-        for vector in [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]:
+        _paths = []
+        for vector in [(x, y) for x in range(-1, 2) for y in range(-1, 2)]:
             if self.get_max_directed_path((origin_coordinates), vector) != origin_coordinates:
-                if self.get_max_directed_path((origin_coordinates), vector) not in paths:
-                    paths.append(self.get_max_directed_path((origin_coordinates), vector))
-        return paths
-
-    def print_all_max_paths(self, origin_coordinates):
-        print(f"Possible targets:\n{self.get_all_max_paths(origin_coordinates)}")
+                if self.get_max_directed_path((origin_coordinates), vector) not in _paths:
+                    _paths.append(self.get_max_directed_path((origin_coordinates), vector))
+        return _paths
 
     def get_max_directed_path(self, origin_coordinates, vector):
         vector_y, vector_x = vector
@@ -70,6 +78,9 @@ class Board:
             return origin_coordinates
         else:
             return self.get_max_directed_path((origin_y + vector_y, origin_x + vector_x), vector)
+
+    def print_all_max_paths(self, origin_coordinates):
+        print(f"Possible targets:\n{self.get_all_max_paths(origin_coordinates)}")
 
     def print_board(self):
         print(f"  ", end="")
@@ -102,23 +113,21 @@ class Player:
                 _pawns.append(_pawn)
         return _pawns
 
+    def move_pawn(self, origin_coordinates, target_coordinates, board):
+        if board.get_pawn(origin_coordinates) == self.id:
+            board.replace(origin_coordinates, target_coordinates)
+        else:
+            raise SelectedWrongPawn
+
+    def move_neutron(self, target_coordinates, board):
+        origin_coordinates = board.get_pawns_by_id(3)[0]
+        board.replace(origin_coordinates, target_coordinates)
+
     def print_possible_pawns(self, board):
         print(f"Possible pawns:")
         for pawn in self.get_possible_pawns(board)[:-1]:
             print(f"{pawn}, ", end="")
-        print(f"{pawn}")  
-
-    def move_pawn(self, origin_coordinates, target_coordinates, board):
-        if board.get_pawn(origin_coordinates) == self.id:
-            board.move(origin_coordinates, target_coordinates)
-        else:
-            raise SelectedWrongPawn
-
-    def move_neutron(self, origin_coordinates, target_coordinates, board):
-        if board.get_pawn(origin_coordinates) == 3:
-            board.move(origin_coordinates, target_coordinates)
-        else:
-            raise SelectedWrongPawn
+        print(f"{self.get_possible_pawns(board)[-1]}")
 
     def __str__(self):
         return f"Player {self.id}"
@@ -128,20 +137,35 @@ class Game:
     def play_2_humans(self, board):
         players = [Player(1), Player(2)]
         active_player = choice(players)
+        first_turn = True
         while True:
             print(active_player)
+
+            if not first_turn:
+                board.print_board()
+                board.print_all_max_paths(board.get_pawns_by_id(3)[0])
+                _target = input("Choose target for neutron:\n")
+                _target = _target.split(", ")
+                target = [int(coordinate) for coordinate in _target]
+                target = tuple(target)
+                active_player.move_neutron(target, board)
+            else:
+                first_turn = False
+
             board.print_board()
             active_player.print_possible_pawns(board)
             _pawn = input("Choose pawn:\n")
             _pawn = _pawn.split(", ")
             pawn = [int(coordinate) for coordinate in _pawn]
             pawn = tuple(pawn)
+
             board.print_all_max_paths(pawn)
             _target = input("Choose target:\n")
             _target = _target.split(", ")
             target = [int(coordinate) for coordinate in _target]
             target = tuple(target)
             active_player.move_pawn(pawn, target, board)
+
             if players.index(active_player) == 0:
                 active_player = players[1]
             else:
