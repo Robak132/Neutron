@@ -1,5 +1,4 @@
 from main import Board, Player, Game
-from errors import InvalidAction, SelectedWrongPawn
 
 
 def test_basic_test_1():

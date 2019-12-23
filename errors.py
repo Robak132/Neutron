@@ -2,5 +2,17 @@ class InvalidAction(Exception):
     pass
 
 
-class SelectedWrongPawn(Exception):
+class WrongPawn(Exception):
+    pass
+
+
+class WrongData(Exception):
+    pass
+
+
+class WrongCoordinates(Exception):
+    pass
+
+
+class WrongTarget(Exception):
     pass
