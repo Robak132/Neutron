@@ -1,6 +1,8 @@
 from random import choice
 from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget
 from sys import exit
+import os
+import colorama
 
 
 class Board:
@@ -130,9 +132,13 @@ class Player:
     """
     def __init__(self, id):
         self.id = id
+        self.bot = False
 
     def get_id(self):
         return self.id
+
+    def is_bot(self):
+        return self.bot
 
     def get_possible_pawns(self, board):
         _pawns = []
@@ -196,10 +202,6 @@ class Player:
     def move_pawn(self, origin_coordinates, target_coordinates, board):
         board.replace(origin_coordinates, target_coordinates)
 
-    def move_neutron(self, target_coordinates, board):
-        origin_coordinates = board.get_pawns_by_id(3)[0]
-        board.replace(origin_coordinates, target_coordinates)
-
     def print_possible_pawns(self, board):
         print(f"Possible pawns:")
         for pawn in self.get_possible_pawns(board)[:-1]:
@@ -208,6 +210,79 @@ class Player:
 
     def __str__(self):
         return f"Player {self.id}"
+
+
+class RandomBot(Player):
+    """
+    Main class describing easy bot in the game. It always takes random valid move.
+    """
+    def __init__(self, id):
+        self.id = id
+        self.bot = True
+
+    def get_selected_pawn(self, board):
+        return choice(self.get_possible_pawns(board))
+
+    def get_selected_target(self, pawn, board):
+        return choice(board.get_all_max_paths(pawn))
+
+
+class SmartBot(Player):
+    def __init__(self, id):
+        self.id = id
+        self.bot = True
+
+    def get_selected_pawn(self, board):
+        if self.get_id() == 1:
+            enemy_row = 0
+            player_row = 4
+        else:
+            enemy_row = 4
+            player_row = 0
+
+        possible_pawns = self.get_possible_pawns(board)
+        priority_pawns = []
+        for pawn in possible_pawns:
+            for row, column in board.get_all_max_paths(pawn):
+                if row == enemy_row and pawn not in priority_pawns:
+                    priority_pawns.append(pawn)
+
+        # secondary_pawns = [pawn for pawn in possible_pawns if pawn in board.get_all_max_paths(board.get_neutron())]
+        secondary_pawns = []
+
+        if priority_pawns != []:
+            return choice(priority_pawns)
+        elif secondary_pawns != []:
+            return choice(secondary_pawns)
+        else:
+            return choice(possible_pawns)
+
+    def get_selected_target(self, pawn, board):
+        possible_targets = board.get_all_max_paths(pawn)
+        if self.get_id() == 1:
+            enemy_row = 0
+            player_row = 4
+        else:
+            enemy_row = 4
+            player_row = 0
+
+        if pawn == board.get_neutron():
+            priority_targets = [(row, column) for (row, column) in possible_targets if row == player_row]
+            secondary_targets = [(row, column) for (row, column) in possible_targets if row != enemy_row]
+            third_targets = [(row, column) for (row, column) in possible_targets if (enemy_row, 0) not in board.get_all_max_paths(pawn) if (enemy_row, 1) not in board.get_all_max_paths(pawn) if (enemy_row, 2) not in board.get_all_max_paths(pawn) if (enemy_row, 3) not in board.get_all_max_paths(pawn) if (enemy_row, 4) not in board.get_all_max_paths(pawn)]
+        else:
+            priority_targets = [(row, column) for (row, column) in possible_targets if row == enemy_row]
+            secondary_targets = []
+            third_targets = []
+
+        if priority_targets != []:
+            return choice(priority_targets)
+        elif secondary_targets != []:
+            return choice(secondary_targets)
+        elif third_targets != []:
+            return third_targets
+        else:
+            return choice(possible_targets)
 
 
 class Game:
@@ -224,15 +299,10 @@ class Game:
 
         self.players = players
 
-    def neutron_turn(self):
-        if not self.first_turn:
-            self.board.print_board()
-            self.board.print_all_max_paths(self.board.get_pawns_by_id(3)[0])
-            neutron = self.board.get_neutron()
-            target = self.select_target(neutron)
-            self.active_player.move_pawn(neutron, target, self.board)
-        else:
-            self.first_turn = False
+        self.show_results = False
+        for player in self.players:
+            if not player.is_bot():
+                self.show_results = True
 
     def select_pawn(self):
         pawn = None
@@ -260,7 +330,7 @@ class Game:
             except WrongTarget:
                 print(f"\033[91m{'You selected wrong target. Try again.'}\033[0m")
             except KeyboardInterrupt:
-                quit()
+                exit()
 
     def get_winner(self):
         neutron_row, neutron_column = self.board.get_neutron()
@@ -273,13 +343,15 @@ class Game:
         else:
             return None
 
-    def print_winner(self):
+    def print_winner(self, board):
+        board.print_board()
         if self.get_winner() == 1:
             print("\033[33mPlayer 1 wins\033[0m")
         elif self.get_winner() == 2:
             print("\033[33mPlayer 2 wins\033[0m")
         elif self.get_winner() == 3:
             print("\033[33mDraw\033[0m")
+        input("Press Enter to exit...")
 
     def play(self):
         # Initialization
@@ -287,22 +359,39 @@ class Game:
 
         while self.get_winner() is None:
             # Beginning of turn
-            print(f"{self.active_player.__str__():^16}")
+            os.system("cls")
 
             # Neutron turn
-            self.neutron_turn()
-            if self.check_winner() is not None:
-                self.board.print_board()
-                break
+            if not self.first_turn:
+                neutron = self.board.get_neutron()
+                if not self.active_player.is_bot():
+                    print(f"\033[93mNeutron's Turn\033[0m\n")
+                    self.board.print_board()
+                    self.board.print_all_max_paths(neutron)
+                target = self.select_target(neutron)
+                self.active_player.move_pawn(neutron, target, self.board)
+            else:
+                self.first_turn = False
+
+            # Check for win
+            if self.get_winner() is not None:
+                if self.show_results:
+                    self.print_winner(self.board)
+                return self.get_winner()
 
             # Selecting pawn
-            self.board.print_board()
-            self.active_player.print_possible_pawns(self.board)
+            if not self.active_player.is_bot():
+                print(f"\033[93mPlayer's {self.active_player.get_id()} Turn\033[0m\n")
+                self.board.print_board()
+                self.active_player.print_possible_pawns(self.board)
             pawn = self.select_pawn()
 
             # Selecting pawn's target
-            self.board.print_all_max_paths(pawn)
+            if not self.active_player.is_bot():
+                self.board.print_all_max_paths(pawn)
             target = self.select_target(pawn)
+
+            # Moving pawns
             self.active_player.move_pawn(pawn, target, self.board)
 
             # Ending turn
@@ -311,9 +400,45 @@ class Game:
             else:
                 self.active_player = self.players[0]
 
-        self.print_winner()
+        if self.show_results:
+            self.print_winner(self.board)
+        return self.get_winner()
 
 
 if __name__ == "__main__":
-    game = Game([Player(1), Player(2)])
-    game.play()
+    colorama.init()
+    while True:
+        try:
+            print("\033[93mChoose game mode:\n1: One player mode with easy computer\n2: One player mode with hard computer\n3: Two players mode\n4: Debug mode\033[0m")
+            mode = input()
+        except KeyboardInterrupt:
+            exit()
+
+        if mode == "1":
+            game = Game([Player(1), RandomBot(2)])
+            game.play()
+            break
+        elif mode == "2":
+            game = Game([Player(1), SmartBot(2)])
+            game.play()
+            break
+        elif mode == "3":
+            game = Game([Player(1), Player(2)])
+            game.play()
+            break
+        elif mode == "4":
+            games = input("Give number of games:\n")
+            results = {
+                1: 0,
+                2: 0,
+                3: 0
+            }
+            for g in range(int(games)):
+                game = Game([RandomBot(1), SmartBot(2)])
+                result = game.play()
+                results[result] += 1
+            print(f"Game results:\nWin by 1: {results[1]}\nWin by 2: {results[2]}\nDraws: {results[3]}")
+            input("Press Enter to exit...")
+        else:
+            print("Invalid input. Try again.")
+            mode = ""

@@ -8,3 +8,4 @@ def test_basic_test_1():
     for col in range(5):
         assert board.get_pawn((0, col)) == 2
         assert board.get_pawn((4, col)) == 1
+        assert board.get_pawn((3, col)) == 0
