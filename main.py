@@ -2,7 +2,7 @@ from random import choice
 from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget
 from sys import exit
 import os
-import colorama
+from colorama import init as colorinit
 
 
 class Board:
@@ -406,7 +406,7 @@ class Game:
 
 
 if __name__ == "__main__":
-    colorama.init()
+    colorinit()
     while True:
         try:
             print("\033[93mChoose game mode:\n1: One player mode with easy computer\n2: One player mode with hard computer\n3: Two players mode\n4: Debug mode\033[0m")
