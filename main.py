@@ -3,7 +3,6 @@ from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedP
 from sys import exit
 from colorama import init as colorinit
 from os import system
-from time import sleep
 import pygame
 
 
@@ -116,11 +115,6 @@ class Board:
         return sorted(_paths)
 
     def get_max_directed_path(self, origin_coordinates, vector):
-        """
-        Returns target infor pawn on given coordinates.
-        :param tuple of ints origin_coordinates: Coordinates of pawn.
-        """
-
         vector_row, vector_column = vector
         origin_row, origin_column = origin_coordinates
 
@@ -371,7 +365,7 @@ class GUI(TextInterface):
                     self.screen.blit(self.green_pawn, (base_x + column * shift_x, base_y + row * shift_y))
                 elif self.board.get_pawn((row, column)) == 3:
                     self.screen.blit(self.blue_pawn, (base_x + column * shift_x, base_y + row * shift_y))
-        
+
         pygame.display.update()
 
 
