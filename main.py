@@ -70,6 +70,10 @@ class Board:
         return coordinates
 
     def get_possible_pawns(self, player):
+        """
+        Return all pawns that player can move.
+        :param Player player: Player that moves pawns in this moment. 
+        """
         _pawns = []
         for _pawn in self.get_pawns_by_id(player.id):
             if self.get_all_max_paths(_pawn) != []:
@@ -77,6 +81,9 @@ class Board:
         return sorted(_pawns)
 
     def get_board(self):
+        """
+        Returns board (list of lists).
+        """
         return self.board
 
     def get_pawn(self, coordinates):
@@ -89,9 +96,16 @@ class Board:
         return self.board[_row][_column]
 
     def get_neutron(self):
+        """
+        Returns coordinates of neutron.
+        """
         return self.get_pawns_by_id(3)[0]
 
     def get_all_max_paths(self, origin_coordinates):
+        """
+        Returns all possible targets for pawn on given coordinates.
+        :param tuple of ints origin_coordinates: Coordinates of pawn. 
+        """
         _paths = []
         for vector in [(x, y) for x in range(-1, 2) for y in range(-1, 2)]:
             if self.get_max_directed_path((origin_coordinates), vector) != origin_coordinates:
@@ -100,6 +114,11 @@ class Board:
         return sorted(_paths)
 
     def get_max_directed_path(self, origin_coordinates, vector):
+        """
+        Returns target infor pawn on given coordinates.
+        :param tuple of ints origin_coordinates: Coordinates of pawn. 
+        """
+        
         vector_row, vector_column = vector
         origin_row, origin_column = origin_coordinates
 
@@ -214,77 +233,117 @@ class GUI(TextInterface):
         self.image_board = pygame.sprite.Group()
         self.screen = pygame.display.set_mode((600, 600))
         pygame.display.set_caption('Neutron')
-
-        self.load_images()
-        self.print_board()
+        try:
+            self.load_images()
+        except Exception:
+            print("Cannot load images")
+            exit()
 
     def load_images(self):
-        self.image_board = pygame.image.load("board.png")
-        self.red_pawn = pygame.image.load("r_pawn.png")
-        self.green_pawn = pygame.image.load("g_pawn.png")
-        self.blue_pawn = pygame.image.load("b_pawn.png")
-        self.click_icon = pygame.image.load("click_icon.png")
+        """
+        Loads all images.
+        """
+        self.image_board = pygame.image.load("images/board.png")
+        self.red_pawn = pygame.image.load("images/r_pawn.png")
+        self.green_pawn = pygame.image.load("images/g_pawn.png")
+        self.blue_pawn = pygame.image.load("images/b_pawn.png")
+        self.selected_pawn = pygame.image.load("images/selected_pawn.png")
+        self.selected_target = pygame.image.load("images/selected_target.png")
 
     def select_pawn(self, player):
         clicked = False
         while not clicked:
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-                    x -= 60
-                    x //= 100
-                    y -= 60
-                    y //= 100
-                    return (y, x)
-
                 if event.type == pygame.QUIT:
                     quit()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = event.pos
+                    row = (y - 60) // 100
+                    column = (x - 60) // 100
+
+                    base_x = 55
+                    shift_x = 100
+                    base_y = 55
+                    shift_y = 100
+
+                    # Coordinates not on board
+                    if not self.board.validate_coordinates((row, column)):
+                        raise WrongCoordinates
+
+                    # Not valid pawn
+                    if self.board.get_pawn((row, column)) != player.get_id():
+                        raise WrongPawn
+
+                    self.screen.blit(self.selected_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+                    pygame.display.update()
+                    return (row, column)
 
     def select_target(self, pawn):
         clicked = False
         while not clicked:
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-                    x -= 60
-                    x //= 100
-                    y -= 60
-                    y //= 100
-                    return (y, x)
-
                 if event.type == pygame.QUIT:
                     quit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    row = (y - 60) // 100
+                    column = (x - 60) // 100
+
+                    # Coordinates not on board
+                    if not self.board.validate_coordinates((row, column)):
+                        raise WrongCoordinates
+
+                    # Not valid target
+                    if (row, column) not in self.board.get_all_max_paths(pawn):
+                        raise WrongTarget
+
+                    return (row, column)
 
     def print_possible_pawns(self, player):
         pass
 
     def print_all_max_paths(self, origin_coordinates):
-        base_x = 80
-        move_x = 100
-        base_y = 80
-        move_y = 100
+        base_x = 55
+        shift_x = 100
+        base_y = 55
+        shift_y = 100
 
         for row in range(len(self.board.get_board())):
             for column in range(len(self.board.get_board()[row])):
                 if (row, column) in self.board.get_all_max_paths(origin_coordinates):
-                    self.screen.blit(self.click_icon, (base_x + column * move_x, base_y + row * move_y))
-        pygame.display.flip()
+                    self.screen.blit(self.selected_target, (base_x + column * shift_x, base_y + row * shift_y))
+        pygame.display.update()
 
-    def print_board(self):
+    def print_board(self, player, neutron=False):
         base_x = 60
-        move_x = 100
+        shift_x = 100
         base_y = 60
-        move_y = 100
+        shift_y = 100
 
+        # Background
         self.screen.blit(self.image_board, (0, 0))
+
+        # Header
+        font = pygame.font.match_font("Calibri", bold=True)
+        font = pygame.font.Font(font, 32)
+        if neutron:
+            text = font.render(f"Neutron's Turn (Player {player.get_id()})", True, (0, 0, 0))
+        else:
+            text = font.render(f"Player's {player.get_id()} Turn", True, (0, 0, 0))
+
+        textRect = text.get_rect()
+        textRect.center = (300, 25)
+        self.screen.blit(text, textRect)
+
+        # Pawns
         for row in range(len(self.board.get_board())):
             for column in range(len(self.board.get_board()[row])):
                 if self.board.get_pawn((row, column)) == 1:
-                    self.screen.blit(self.red_pawn, (base_x + column * move_x, base_y + row * move_y))
+                    self.screen.blit(self.red_pawn, (base_x + column * shift_x, base_y + row * shift_y))
                 elif self.board.get_pawn((row, column)) == 2:
-                    self.screen.blit(self.green_pawn, (base_x + column * move_x, base_y + row * move_y))
+                    self.screen.blit(self.green_pawn, (base_x + column * shift_x, base_y + row * shift_y))
                 elif self.board.get_pawn((row, column)) == 3:
-                    self.screen.blit(self.blue_pawn, (base_x + column * move_x, base_y + row * move_y))
+                    self.screen.blit(self.blue_pawn, (base_x + column * shift_x, base_y + row * shift_y))
         pygame.display.update()
 
 
@@ -435,6 +494,8 @@ class Game:
                 mode = input()
             except KeyboardInterrupt:
                 exit()
+            except EOFError:
+                exit()
 
             if mode == "1":
                 mode_chose = True
@@ -464,7 +525,7 @@ class Game:
             return None
 
     def print_winner(self):
-        self.interface.print_board()
+        self.interface.print_board(self.active_player)
         if self.get_winner() == 1:
             print("\033[33mPlayer 1 wins\033[0m")
         elif self.get_winner() == 2:
@@ -479,19 +540,13 @@ class Game:
 
         running = True
         while running:
-            if self.video_mode == 1:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        quit()
-
             # Beginning of turn
             os.system("cls")
 
             # Neutron turn
             if not self.first_turn:
                 neutron = self.board.get_neutron()
-                self.interface.print_header(self.active_player, neutron=True)
-                self.interface.print_board()
+                self.interface.print_board(self.active_player, neutron=True)
                 self.interface.print_all_max_paths(neutron)
                 target = self.active_player.get_selected_target(neutron, self.board, self.interface)
                 self.active_player.move_pawn(neutron, target, self.board)
@@ -504,8 +559,7 @@ class Game:
                 return self.get_winner()
 
             # Selecting pawn
-            self.interface.print_header(self.active_player)
-            self.interface.print_board()
+            self.interface.print_board(self.active_player)
             self.interface.print_possible_pawns(self.active_player)
             pawn = self.active_player.get_selected_pawn(self.board, self.interface)
 
