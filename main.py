@@ -1,11 +1,12 @@
 from random import choice
-from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget
+from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedPawn
 from sys import exit
 from colorama import init as colorinit
-import os
+from os import system
 import pygame
 
 
+# Board
 class Board:
     """
     Main class describing gameboard.
@@ -130,6 +131,7 @@ class Board:
             return self.get_max_directed_path((origin_row + vector_row, origin_column + vector_column), vector)
 
 
+# Interfaces
 class TextInterface:
     def __init__(self, board):
         self.board = board
@@ -157,6 +159,10 @@ class TextInterface:
         # Not valid pawn
         if self.board.get_pawn(_coordinates) != player.get_id():
             raise WrongPawn
+
+        # Blocked
+        if tuple(_coordinates) not in self.board.get_possible_pawns(player):
+            raise BlockedPawn
 
         return tuple(_coordinates)
 
@@ -186,12 +192,6 @@ class TextInterface:
 
         return tuple(_coordinates)
 
-    def print_header(self, player, neutron=False):
-        if neutron:
-            print(f"\033[93mNeutron's Turn (Player {player.get_id()})\033[0m\n")
-        else:
-            print(f"\033[93mPlayer's {player.get_id()} Turn\033[0m\n")
-
     def print_all_max_paths(self, origin_coordinates):
         print(f"Possible targets:")
         for path in self.board.get_all_max_paths(origin_coordinates)[:-1]:
@@ -204,7 +204,14 @@ class TextInterface:
             print(f"{pawn}, ", end="")
         print(f"{self.board.get_possible_pawns(player)[-1]}")
 
-    def print_board(self):
+    def print_board(self, player, neutron=False):
+        # Header
+        if neutron:
+            print(f"\033[93mNeutron's Turn (Player {player.get_id()})\033[0m\n")
+        else:
+            print(f"\033[93mPlayer's {player.get_id()} Turn\033[0m\n")
+
+        # Board
         print(f"  ", end="")
         for col in range(5):
             print(f" \033[93m{col}\033[0m ", end="")
@@ -273,6 +280,10 @@ class GUI(TextInterface):
                     # Not valid pawn
                     if self.board.get_pawn((row, column)) != player.get_id():
                         raise WrongPawn
+                    
+                    # Blocked
+                    if (row, column) not in self.board.get_possible_pawns(player):
+                        raise BlockedPawn
 
                     self.screen.blit(self.selected_pawn, (base_x + column * shift_x, base_y + row * shift_y))
                     pygame.display.update()
@@ -284,7 +295,7 @@ class GUI(TextInterface):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     row = (y - 60) // 100
                     column = (x - 60) // 100
@@ -347,6 +358,7 @@ class GUI(TextInterface):
         pygame.display.update()
 
 
+# Players
 class Player:
     """
     Main class describing player in the game.
@@ -372,7 +384,11 @@ class Player:
                 print(f"\033[91m{'You gave wrong coordinates. Try again.'}\033[0m")
             except WrongPawn:
                 print(f"\033[91m{'You selected wrong pawn. Try again.'}\033[0m")
+            except BlockedPawn:
+                print(f"\033[91m{'You selected pawn that is fully blocked. Try again.'}\033[0m")
             except KeyboardInterrupt:
+                exit()
+            except EOFError:
                 exit()
 
     def get_selected_target(self, pawn, board, interface):
@@ -387,6 +403,8 @@ class Player:
             except WrongTarget:
                 print(f"\033[91m{'You selected wrong target. Try again.'}\033[0m")
             except KeyboardInterrupt:
+                exit()
+            except EOFError:
                 exit()
 
     def move_pawn(self, origin_coordinates, target_coordinates, board):
@@ -469,14 +487,14 @@ class SmartBot(Player):
             return choice(possible_targets)
 
 
+# Game
 class Game:
     def __init__(self, video_mode, first_turn=None):
         self.board = Board()
+        self.video_mode = video_mode
         if video_mode == 0:
-            self.video_mode = 0
             self.interface = TextInterface(self.board)
         else:
-            self.video_mode = 1
             self.interface = GUI(self.board)
 
         self.players = self.select_game_mode()
@@ -541,13 +559,14 @@ class Game:
         running = True
         while running:
             # Beginning of turn
-            os.system("cls")
+            system("cls")
 
             # Neutron turn
             if not self.first_turn:
                 neutron = self.board.get_neutron()
-                self.interface.print_board(self.active_player, neutron=True)
-                self.interface.print_all_max_paths(neutron)
+                if not self.active_player.is_bot():
+                    self.interface.print_board(self.active_player, neutron=True)
+                    self.interface.print_all_max_paths(neutron)
                 target = self.active_player.get_selected_target(neutron, self.board, self.interface)
                 self.active_player.move_pawn(neutron, target, self.board)
             else:
@@ -559,12 +578,14 @@ class Game:
                 return self.get_winner()
 
             # Selecting pawn
-            self.interface.print_board(self.active_player)
-            self.interface.print_possible_pawns(self.active_player)
+            if not self.active_player.is_bot():
+                self.interface.print_board(self.active_player)
+                self.interface.print_possible_pawns(self.active_player)
             pawn = self.active_player.get_selected_pawn(self.board, self.interface)
 
             # Selecting pawn's target
-            self.interface.print_all_max_paths(pawn)
+            if not self.active_player.is_bot():
+                self.interface.print_all_max_paths(pawn)
             target = self.active_player.get_selected_target(pawn, self.board, self.interface)
 
             # Moving pawns
@@ -580,9 +601,6 @@ class Game:
             if self.get_winner() is not None:
                 self.print_winner()
                 return self.get_winner()
-
-            if self.video_mode == 1:
-                pygame.display.update()
 
 
 if __name__ == "__main__":

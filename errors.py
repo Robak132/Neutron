@@ -16,3 +16,6 @@ class WrongCoordinates(Exception):
 
 class WrongTarget(Exception):
     pass
+
+class BlockedPawn(Exception):
+    pass
