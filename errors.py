@@ -1,7 +1,3 @@
-class InvalidAction(Exception):
-    pass
-
-
 class WrongPawn(Exception):
     pass
 
@@ -16,6 +12,7 @@ class WrongCoordinates(Exception):
 
 class WrongTarget(Exception):
     pass
+
 
 class BlockedPawn(Exception):
     pass

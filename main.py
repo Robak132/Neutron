@@ -3,6 +3,7 @@ from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedP
 from sys import exit
 from colorama import init as colorinit
 from os import system
+from time import sleep
 import pygame
 
 
@@ -73,7 +74,7 @@ class Board:
     def get_possible_pawns(self, player):
         """
         Return all pawns that player can move.
-        :param Player player: Player that moves pawns in this moment. 
+        :param Player player: Player that moves pawns in this moment.
         """
         _pawns = []
         for _pawn in self.get_pawns_by_id(player.id):
@@ -105,7 +106,7 @@ class Board:
     def get_all_max_paths(self, origin_coordinates):
         """
         Returns all possible targets for pawn on given coordinates.
-        :param tuple of ints origin_coordinates: Coordinates of pawn. 
+        :param tuple of ints origin_coordinates: Coordinates of pawn.
         """
         _paths = []
         for vector in [(x, y) for x in range(-1, 2) for y in range(-1, 2)]:
@@ -117,9 +118,9 @@ class Board:
     def get_max_directed_path(self, origin_coordinates, vector):
         """
         Returns target infor pawn on given coordinates.
-        :param tuple of ints origin_coordinates: Coordinates of pawn. 
+        :param tuple of ints origin_coordinates: Coordinates of pawn.
         """
-        
+
         vector_row, vector_column = vector
         origin_row, origin_column = origin_coordinates
 
@@ -204,12 +205,19 @@ class TextInterface:
             print(f"{pawn}, ", end="")
         print(f"{self.board.get_possible_pawns(player)[-1]}")
 
-    def print_board(self, player, neutron=False):
+    def print_all(self, **kwargs):
         # Header
-        if neutron:
-            print(f"\033[93mNeutron's Turn (Player {player.get_id()})\033[0m\n")
-        else:
-            print(f"\033[93mPlayer's {player.get_id()} Turn\033[0m\n")
+        if "player" in kwargs.keys() and "neutron" in kwargs.keys():
+            print(f"\033[93mNeutron's Turn (Player {kwargs['player'].get_id()})\033[0m\n")
+        elif "player" in kwargs.keys():
+            print(f"\033[93mPlayer's {kwargs['player'].get_id()} Turn\033[0m\n")
+        elif "winner" in kwargs.keys():
+            if kwargs["winner"] == 1:
+                print("\033[33mPlayer 1 wins...\033[0m")
+            elif kwargs["winner"] == 2:
+                print("\033[33mPlayer 2 wins...\033[0m")
+            elif kwargs["winner"] == 3:
+                print("\033[33mDraw...\033[0m")
 
         # Board
         print(f"  ", end="")
@@ -243,7 +251,7 @@ class GUI(TextInterface):
         try:
             self.load_images()
         except Exception:
-            print("Cannot load images")
+            print(f"\033[91mCannot load images\033[0m")
             exit()
 
     def load_images(self):
@@ -280,7 +288,7 @@ class GUI(TextInterface):
                     # Not valid pawn
                     if self.board.get_pawn((row, column)) != player.get_id():
                         raise WrongPawn
-                    
+
                     # Blocked
                     if (row, column) not in self.board.get_possible_pawns(player):
                         raise BlockedPawn
@@ -325,7 +333,7 @@ class GUI(TextInterface):
                     self.screen.blit(self.selected_target, (base_x + column * shift_x, base_y + row * shift_y))
         pygame.display.update()
 
-    def print_board(self, player, neutron=False):
+    def print_all(self, **kwargs):
         base_x = 60
         shift_x = 100
         base_y = 60
@@ -335,13 +343,21 @@ class GUI(TextInterface):
         self.screen.blit(self.image_board, (0, 0))
 
         # Header
+        if "player" in kwargs.keys() and "neutron" in kwargs.keys():
+            text = f"Neutron's Turn (Player {kwargs['player'].get_id()})"
+        elif "player" in kwargs.keys():
+            text = f"Player's {kwargs['player'].get_id()} Turn"
+        elif "winner" in kwargs.keys():
+            if kwargs["winner"] == 1:
+                text = "Player 1 wins..."
+            elif kwargs["winner"] == 2:
+                text = "Player 2 wins..."
+            elif kwargs["winner"] == 3:
+                text = "Draw..."
+
         font = pygame.font.match_font("Calibri", bold=True)
         font = pygame.font.Font(font, 32)
-        if neutron:
-            text = font.render(f"Neutron's Turn (Player {player.get_id()})", True, (0, 0, 0))
-        else:
-            text = font.render(f"Player's {player.get_id()} Turn", True, (0, 0, 0))
-
+        text = font.render(text, True, (0, 0, 0))
         textRect = text.get_rect()
         textRect.center = (300, 25)
         self.screen.blit(text, textRect)
@@ -355,6 +371,7 @@ class GUI(TextInterface):
                     self.screen.blit(self.green_pawn, (base_x + column * shift_x, base_y + row * shift_y))
                 elif self.board.get_pawn((row, column)) == 3:
                     self.screen.blit(self.blue_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+        
         pygame.display.update()
 
 
@@ -437,23 +454,23 @@ class SmartBot(Player):
     def get_selected_pawn(self, board, interface):
         if self.get_id() == 1:
             enemy_row = 0
-            player_row = 4
+            home_row = 4
         else:
             enemy_row = 4
-            player_row = 0
+            home_row = 0
 
         possible_pawns = board.get_possible_pawns(self)
-        priority_pawns = []
+        primary_pawns = []
         for pawn in possible_pawns:
             for row, column in board.get_all_max_paths(pawn):
-                if row == enemy_row and pawn not in priority_pawns:
-                    priority_pawns.append(pawn)
+                if row == enemy_row and pawn not in primary_pawns:
+                    primary_pawns.append(pawn)
 
         # secondary_pawns = [pawn for pawn in possible_pawns if pawn in board.get_all_max_paths(board.get_neutron())]
         secondary_pawns = []
 
-        if priority_pawns != []:
-            return choice(priority_pawns)
+        if primary_pawns != []:
+            return choice(primary_pawns)
         elif secondary_pawns != []:
             return choice(secondary_pawns)
         else:
@@ -463,33 +480,33 @@ class SmartBot(Player):
         possible_targets = board.get_all_max_paths(pawn)
         if self.get_id() == 1:
             enemy_row = 0
-            player_row = 4
+            home_row = 4
         else:
             enemy_row = 4
-            player_row = 0
+            home_row = 0
 
         if pawn == board.get_neutron():
-            priority_targets = [(row, column) for (row, column) in possible_targets if row == player_row]
+            primary_targets = [(row, column) for (row, column) in possible_targets if row == home_row]
             secondary_targets = [(row, column) for (row, column) in possible_targets if row != enemy_row]
-            third_targets = [(row, column) for (row, column) in possible_targets if (enemy_row, 0) not in board.get_all_max_paths(pawn) if (enemy_row, 1) not in board.get_all_max_paths(pawn) if (enemy_row, 2) not in board.get_all_max_paths(pawn) if (enemy_row, 3) not in board.get_all_max_paths(pawn) if (enemy_row, 4) not in board.get_all_max_paths(pawn)]
+            tertiary_targets = [(row, column) for (row, column) in possible_targets if (enemy_row, 0) not in board.get_all_max_paths(pawn) if (enemy_row, 1) not in board.get_all_max_paths(pawn) if (enemy_row, 2) not in board.get_all_max_paths(pawn) if (enemy_row, 3) not in board.get_all_max_paths(pawn) if (enemy_row, 4) not in board.get_all_max_paths(pawn)]
         else:
-            priority_targets = [(row, column) for (row, column) in possible_targets if row == enemy_row]
+            primary_targets = [(row, column) for (row, column) in possible_targets if row == enemy_row]
             secondary_targets = []
-            third_targets = []
+            tertiary_targets = []
 
-        if priority_targets != []:
-            return choice(priority_targets)
+        if primary_targets != []:
+            return choice(primary_targets)
         elif secondary_targets != []:
             return choice(secondary_targets)
-        elif third_targets != []:
-            return third_targets
+        elif tertiary_targets != []:
+            return tertiary_targets
         else:
             return choice(possible_targets)
 
 
 # Game
 class Game:
-    def __init__(self, video_mode, first_turn=None):
+    def __init__(self, video_mode=0, game_mode=None, first_turn=None):
         self.board = Board()
         self.video_mode = video_mode
         if video_mode == 0:
@@ -497,7 +514,20 @@ class Game:
         else:
             self.interface = GUI(self.board)
 
-        self.players = self.select_game_mode()
+        if game_mode is not None:
+            self.game_mode = game_mode
+            if game_mode == 1:
+                self.players = [Player(1), RandomBot(2)]
+            elif game_mode == 2:
+                self.players = [Player(1), SmartBot(2)]
+            elif game_mode == 3:
+                self.players = [Player(1), Player(2)]
+            elif game_mode == 4:
+                self.players = [SmartBot(1), SmartBot(2)]
+            else:
+                self.players, self.game_mode = self.select_game_mode()
+        else:
+            self.players, self.game_mode = self.select_game_mode()
 
         if first_turn is not None:
             self.first_turn = first_turn
@@ -517,16 +547,16 @@ class Game:
 
             if mode == "1":
                 mode_chose = True
-                return [Player(1), RandomBot(2)]
+                return ([Player(1), RandomBot(2)], 1)
             elif mode == "2":
                 mode_chose = True
-                return [Player(1), SmartBot(2)]
+                return ([Player(1), SmartBot(2)], 2)
             elif mode == "3":
                 mode_chose = True
-                return [Player(1), Player(2)]
+                return ([Player(1), Player(2)], 3)
             elif mode == "4":
                 mode_chose = True
-                return [SmartBot(1), SmartBot(2)]
+                return ([SmartBot(1), SmartBot(2)], 4)
             else:
                 mode_chose = False
                 print("Invalid input. Try again.")
@@ -542,16 +572,6 @@ class Game:
         else:
             return None
 
-    def print_winner(self):
-        self.interface.print_board(self.active_player)
-        if self.get_winner() == 1:
-            print("\033[33mPlayer 1 wins\033[0m")
-        elif self.get_winner() == 2:
-            print("\033[33mPlayer 2 wins\033[0m")
-        elif self.get_winner() == 3:
-            print("\033[33mDraw\033[0m")
-        input("Press Enter to exit...")
-
     def play(self):
         # Initialization
         self.active_player = choice(self.players)
@@ -565,7 +585,7 @@ class Game:
             if not self.first_turn:
                 neutron = self.board.get_neutron()
                 if not self.active_player.is_bot():
-                    self.interface.print_board(self.active_player, neutron=True)
+                    self.interface.print_all(player=self.active_player, neutron=True)
                     self.interface.print_all_max_paths(neutron)
                 target = self.active_player.get_selected_target(neutron, self.board, self.interface)
                 self.active_player.move_pawn(neutron, target, self.board)
@@ -574,12 +594,13 @@ class Game:
 
             # Check for win
             if self.get_winner() is not None:
-                self.print_winner()
+                self.interface.print_all(winner=self.get_winner())
+                pygame.time.wait(5000)
                 return self.get_winner()
 
             # Selecting pawn
             if not self.active_player.is_bot():
-                self.interface.print_board(self.active_player)
+                self.interface.print_all(player=self.active_player)
                 self.interface.print_possible_pawns(self.active_player)
             pawn = self.active_player.get_selected_pawn(self.board, self.interface)
 
@@ -599,11 +620,12 @@ class Game:
 
             # Check for win
             if self.get_winner() is not None:
-                self.print_winner()
+                self.interface.print_all(winner=self.get_winner())
+                pygame.time.wait(5000)
                 return self.get_winner()
 
 
 if __name__ == "__main__":
     colorinit()
-    game = Game(video_mode=1)
+    game = Game(video_mode=1, game_mode=4)
     game.play()
