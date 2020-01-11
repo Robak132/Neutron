@@ -1,0 +1,5 @@
+{
+  "test_win_conditions.py::test_draw_wins": true,
+  "test_win_conditions.py::test_player_1_wins": true,
+  "test_win_conditions.py::test_player_2_wins": true
+}
