@@ -31,13 +31,13 @@ class HumanPlayer(Player):
             try:
                 return interface.select_pawn(self)
             except WrongData:
-                print(f"\033[91m{'You gave wrong data or used wrong format. Try again.'}\033[0m")
+                interface.print_error("You gave wrong data or used wrong format. Try again.")
             except WrongCoordinates:
-                print(f"\033[91m{'You gave wrong coordinates. Try again.'}\033[0m")
+                interface.print_error("You gave wrong coordinates. Try again.")
             except WrongPawn:
-                print(f"\033[91m{'You selected wrong pawn. Try again.'}\033[0m")
+                interface.print_error("You selected wrong pawn. Try again.")
             except BlockedPawn:
-                print(f"\033[91m{'You selected pawn that is fully blocked. Try again.'}\033[0m")
+                interface.print_error("You selected pawn that is fully blocked. Try again.")
             except KeyboardInterrupt:
                 exit()
             except EOFError:
@@ -49,11 +49,11 @@ class HumanPlayer(Player):
             try:
                 return interface.select_target(pawn)
             except WrongData:
-                print(f"\033[91m{'You gave wrong data or used wrong format. Try again.'}\033[0m")
+                interface.print_error("You gave wrong data or used wrong format. Try again.")
             except WrongCoordinates:
-                print(f"\033[91m{'You gave wrong coordinates. Try again.'}\033[0m")
+                interface.print_error("You gave wrong coordinates. Try again.")
             except WrongTarget:
-                print(f"\033[91m{'You selected wrong target. Try again.'}\033[0m")
+                interface.print_error("You selected wrong target. Try again.")
             except KeyboardInterrupt:
                 exit()
             except EOFError:

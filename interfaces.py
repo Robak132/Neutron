@@ -80,6 +80,9 @@ class TextInterface:
                 print("Invalid input. Try again.")
         return game_mode
 
+    def print_error(self, error):
+        print(f"\033[91m{error}\033[0m")
+
     def print_all_max_paths(self, origin_coordinates):
         print(f"Possible targets:")
         for path in self.board.get_all_max_paths(origin_coordinates)[:-1]:
@@ -146,6 +149,7 @@ class GUI:
         """
         self.image_board = pygame.image.load("images/board.png")
         self.menu = pygame.image.load("images/menu.png")
+        self.log = pygame.image.load("images/log.png")
 
         self.red_pawn = pygame.image.load("images/r_pawn.png")
         self.green_pawn = pygame.image.load("images/g_pawn.png")
@@ -247,16 +251,15 @@ class GUI:
                     elif y >= 420 and y <= 470:
                         return 3
 
-    def print_possible_pawns(self, player):
-        base_x = 80
-        shift_x = 100
-        base_y = 80
-        shift_y = 100
+    def print_error(self, error):
+        self.screen.blit(self.log, (0, 550))
+        font = pygame.font.match_font("Calibri", bold=True)
+        font = pygame.font.Font(font, 32)
+        text = font.render(error, True, (255, 0, 0))
+        textRect = text.get_rect()
+        textRect.center = (300, 575)
+        self.screen.blit(text, textRect)
 
-        for row in range(len(self.board.get_board())):
-            for column in range(len(self.board.get_board()[row])):
-                if (row, column) in self.board.get_possible_pawns(player):
-                    self.screen.blit(self.active_pawn, (base_x + column * shift_x, base_y + row * shift_y))
         pygame.display.update()
 
     def print_all_max_paths(self, origin_coordinates):
@@ -271,16 +274,42 @@ class GUI:
                     self.screen.blit(self.selected_target, (base_x + column * shift_x, base_y + row * shift_y))
         pygame.display.update()
 
-    def print_all(self, **kwargs):
+    def print_possible_pawns(self, player):
+        base_x = 80
+        shift_x = 100
+        base_y = 80
+        shift_y = 100
+
+        for row in range(len(self.board.get_board())):
+            for column in range(len(self.board.get_board()[row])):
+                if (row, column) in self.board.get_possible_pawns(player):
+                    self.screen.blit(self.active_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+        pygame.display.update()
+
+    def print_background(self):
         base_x = 60
         shift_x = 100
         base_y = 60
         shift_y = 100
 
-        # Background
+        # Table
         self.screen.blit(self.image_board, (0, 0))
 
-        # Header
+        # Pawns
+        for row in range(len(self.board.get_board())):
+            for column in range(len(self.board.get_board()[row])):
+                if self.board.get_pawn((row, column)) == 1:
+                    self.screen.blit(self.red_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+                elif self.board.get_pawn((row, column)) == 2:
+                    self.screen.blit(self.green_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+                elif self.board.get_pawn((row, column)) == 3:
+                    self.screen.blit(self.blue_pawn, (base_x + column * shift_x, base_y + row * shift_y))
+
+        pygame.display.update()
+
+    def print_all(self, **kwargs):
+        self.print_background()
+
         if "player" in kwargs.keys() and "neutron" in kwargs.keys():
             text = f"Neutron's Turn (Player {kwargs['player'].get_id()})"
         elif "player" in kwargs.keys():
@@ -299,15 +328,5 @@ class GUI:
         textRect = text.get_rect()
         textRect.center = (300, 25)
         self.screen.blit(text, textRect)
-
-        # Pawns
-        for row in range(len(self.board.get_board())):
-            for column in range(len(self.board.get_board()[row])):
-                if self.board.get_pawn((row, column)) == 1:
-                    self.screen.blit(self.red_pawn, (base_x + column * shift_x, base_y + row * shift_y))
-                elif self.board.get_pawn((row, column)) == 2:
-                    self.screen.blit(self.green_pawn, (base_x + column * shift_x, base_y + row * shift_y))
-                elif self.board.get_pawn((row, column)) == 3:
-                    self.screen.blit(self.blue_pawn, (base_x + column * shift_x, base_y + row * shift_y))
 
         pygame.display.update()

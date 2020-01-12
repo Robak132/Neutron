@@ -2,7 +2,6 @@ from interfaces import TextInterface, GUI
 from players import HumanPlayer, RandomBot, SmartBot
 
 from random import choice
-from sys import exit
 from colorama import init as colorinit
 from os import system
 import pygame
@@ -15,7 +14,7 @@ class Board:
     """
     def __init__(self, custom=None):
         """
-        :param list of lists custom: sets custom board for game.
+            :param list of lists custom: sets custom board for game.
         """
         if custom is None:
             self.reset_board()
@@ -34,9 +33,8 @@ class Board:
     def replace(self, origin_coordinates, target_coordinates):
         """
         Switches place of two elements on the board.
-
-        :param tuple of ints origin_coordinates: Coordinates of first element
-        :param tuple of ints target_coordinates: Coordinates of second element
+            :param tuple of ints origin_coordinates: Coordinates of first element
+            :param tuple of ints target_coordinates: Coordinates of second element
         """
         origin_row, origin_column = origin_coordinates
         target_row, target_column = target_coordinates
@@ -48,8 +46,7 @@ class Board:
     def validate_coordinates(self, coordinates):
         """
         Checks if coordinates are valid. Returns bool.
-
-        :param tuple of ints coordinates: Given coordinates
+            :param tuple of ints coordinates: Given coordinates
         """
         row, column = coordinates
 
@@ -62,8 +59,7 @@ class Board:
     def get_pawns_by_id(self, id):
         """
         Returns coordinates of all pawns with given id.
-
-        :param int id: id of pawns you are searching for
+            :param int id: id of pawns you are searching for
         """
         coordinates = []
         for row in range(0, len(self.board)):
@@ -75,7 +71,7 @@ class Board:
     def get_possible_pawns(self, player):
         """
         Return all pawns that player can move.
-        :param Player player: Player that moves pawns in this moment.
+            :param Player player: Player that moves pawns in this moment.
         """
         _pawns = []
         for _pawn in self.get_pawns_by_id(player.id):
@@ -92,7 +88,7 @@ class Board:
     def get_pawn(self, coordinates):
         """
         Returns id of the element with given coordiantes.
-        :param coordinates tuple of ints: coordinates of element
+            :param coordinates tuple of ints: coordinates of element
         """
         _row, _column = coordinates
 
@@ -107,7 +103,7 @@ class Board:
     def get_all_max_paths(self, origin_coordinates):
         """
         Returns all possible targets for pawn on given coordinates.
-        :param tuple of ints origin_coordinates: Coordinates of pawn.
+            :param tuple of ints origin_coordinates: Coordinates of pawn.
         """
         _paths = []
         for vector in [(x, y) for x in range(-1, 2) for y in range(-1, 2)]:
@@ -117,6 +113,11 @@ class Board:
         return sorted(_paths)
 
     def get_max_directed_path(self, origin_coordinates, vector):
+        """
+        Returns final coordinates of path along vector from given coordinates.
+            :param tuple of ints origin_coordinates: coordinates of pawn.
+            :param tuple of ints vector: path vector.
+        """
         vector_row, vector_column = vector
         origin_row, origin_column = origin_coordinates
 
