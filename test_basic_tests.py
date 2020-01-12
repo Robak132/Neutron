@@ -1,4 +1,4 @@
-from main import Board, Player, Game
+from main import Board
 
 
 def test_basic_test_1():
