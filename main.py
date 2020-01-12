@@ -177,9 +177,6 @@ class Game:
 
         running = True
         while running:
-            # Beginning of turn
-            system("cls")
-
             # Neutron turn
             if not self.first_turn:
                 neutron = self.board.get_neutron()

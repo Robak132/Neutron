@@ -9,5 +9,5 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "cSpell.enabled": false,
-    "python.pythonPath": "C:\\Users\\kubar\\AppData\\Local\\Programs\\Python\\Python37\\python.exe"
+    "python.pythonPath": "/bin/python3"
 }
