@@ -275,9 +275,9 @@ class GUI:
         pygame.display.update()
 
     def print_possible_pawns(self, player):
-        base_x = 80
+        base_x = 60
         shift_x = 100
-        base_y = 80
+        base_y = 60
         shift_y = 100
 
         for row in range(len(self.board.get_board())):
@@ -307,26 +307,22 @@ class GUI:
 
         pygame.display.update()
 
-    def print_all(self, **kwargs):
+    def print_header(self, header):
         self.print_background()
-
-        if "player" in kwargs.keys() and "neutron" in kwargs.keys():
-            text = f"Neutron's Turn (Player {kwargs['player'].get_id()})"
-        elif "player" in kwargs.keys():
-            text = f"Player's {kwargs['player'].get_id()} Turn"
-        elif "winner" in kwargs.keys():
-            if kwargs["winner"] == 1:
-                text = "Player 1 wins..."
-            elif kwargs["winner"] == 2:
-                text = "Player 2 wins..."
-            elif kwargs["winner"] == 3:
-                text = "Draw..."
 
         font = pygame.font.match_font("Calibri", bold=True)
         font = pygame.font.Font(font, 32)
-        text = font.render(text, True, (0, 0, 0))
+        text = font.render(header, True, (0, 0, 0))
         textRect = text.get_rect()
         textRect.center = (300, 25)
         self.screen.blit(text, textRect)
 
         pygame.display.update()
+
+    def print_winner(self, winner):
+        if winner == 1:
+            self.print_header("Player 1 wins...")
+        elif winner == 2:
+            self.print_header("Player 2 wins...")
+        else:
+            self.print_header("Draw...")

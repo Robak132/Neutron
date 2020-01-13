@@ -4,7 +4,8 @@ from errors import ExitGame
 
 from random import choice
 from colorama import init as colorinit
-from os import system
+from os import system, name
+
 import pygame
 import pygame.display
 import sys
@@ -180,11 +181,14 @@ class Game:
 
         running = True
         while running:
+            # Beginning of turn
+            system('cls' if name == 'nt' else 'clear')  # Win vs Linux
+
             # Neutron turn
             if not self.first_turn:
                 neutron = self.board.get_neutron()
                 if not self.active_player.is_bot():
-                    self.interface.print_all(player=self.active_player, neutron=True)
+                    self.interface.print_header(f"Neutron's Turn (Player {self.active_player.get_id()})")
                     self.interface.print_all_max_paths(neutron)
                 target = self.active_player.get_selected_target(neutron, self.board, self.interface)
                 self.active_player.move_pawn(neutron, target, self.board)
@@ -193,13 +197,13 @@ class Game:
 
             # Check for win
             if self.get_winner() is not None:
-                self.interface.print_all(winner=self.get_winner())
-                pygame.time.wait(5000)
+                self.interface.print_winner(self.get_winner())
+                pygame.time.wait(2000)
                 return self.get_winner()
 
             # Selecting pawn
             if not self.active_player.is_bot():
-                self.interface.print_all(player=self.active_player)
+                self.interface.print_header(f"Player's {self.active_player.get_id()} Turn")
                 self.interface.print_possible_pawns(self.active_player)
             pawn = self.active_player.get_selected_pawn(self.board, self.interface)
 
@@ -219,8 +223,8 @@ class Game:
 
             # Check for win
             if self.get_winner() is not None:
-                self.interface.print_all(winner=self.get_winner())
-                pygame.time.wait(5000)
+                self.interface.print_winner(self.get_winner())
+                pygame.time.wait(2000)
                 return self.get_winner()
 
 
