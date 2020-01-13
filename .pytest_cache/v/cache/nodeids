@@ -1,6 +1,0 @@
-[
-  "test_basic_tests.py::test_basic_test_1",
-  "test_win_conditions.py::test_player_1_wins",
-  "test_win_conditions.py::test_player_2_wins",
-  "test_win_conditions.py::test_draw_wins"
-]
