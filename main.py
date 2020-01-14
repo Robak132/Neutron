@@ -1,14 +1,11 @@
 from interfaces import TextInterface, GUI
 from players import HumanPlayer, RandomBot, SmartBot
-from errors import ExitGame
 
 from random import choice
 from colorama import init as colorinit
 from os import system, name
 
 import pygame
-import pygame.display
-import sys
 
 
 # Board
@@ -230,10 +227,5 @@ class Game:
 
 if __name__ == "__main__":
     colorinit()
-    try:
-        game = Game(video_mode=0)
-        game.play()
-    except ExitGame:
-        pygame.display.quit()
-        pygame.quit()
-        sys.exit()
+    game = Game(video_mode=0)
+    game.play()

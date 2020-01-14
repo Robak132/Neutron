@@ -1,6 +1,5 @@
-from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedPawn, ExitGame
-from sys import exit
-import pygame
+from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedPawn
+import pygame, sys
 
 
 class TextInterface:
@@ -70,9 +69,9 @@ class TextInterface:
                 print("\033[93mChoose game mode:\n1: One player mode with easy computer\n2: One player mode with hard computer\n3: Two players mode\n4: AI mode\033[0m")
                 game_mode = input()
             except KeyboardInterrupt:
-                exit()
+                raise SystemExit
             except EOFError:
-                exit()
+                raise SystemExit
 
             if game_mode in ["1", "2", "3", "4"]:
                 mode_chose = True
@@ -141,7 +140,7 @@ class GUI:
             self.load_images()
         except Exception:
             print(f"\033[91mCannot load images\033[0m")
-            exit()
+            raise SystemExit
 
     def load_images(self):
         """
@@ -163,7 +162,9 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    raise ExitGame
+                    pygame.display.quit()
+                    pygame.quit()
+                    sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     row = (y - 60) // 100
@@ -195,7 +196,9 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    raise ExitGame
+                    pygame.display.quit()
+                    pygame.quit()
+                    sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     row = (y - 60) // 100
@@ -241,7 +244,9 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    raise ExitGame
+                    pygame.display.quit()
+                    pygame.quit()
+                    sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     if y >= 220 and y <= 270:

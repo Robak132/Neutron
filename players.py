@@ -1,6 +1,5 @@
 from random import choice
 from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedPawn
-from sys import exit
 
 
 class Player:
@@ -39,9 +38,9 @@ class HumanPlayer(Player):
             except BlockedPawn:
                 interface.print_error("You selected pawn that is fully blocked. Try again.")
             except KeyboardInterrupt:
-                exit()
+                raise SystemExit
             except EOFError:
-                exit()
+                raise SystemExit
 
     def get_selected_target(self, pawn, board, interface):
         target = None
@@ -55,9 +54,9 @@ class HumanPlayer(Player):
             except WrongTarget:
                 interface.print_error("You selected wrong target. Try again.")
             except KeyboardInterrupt:
-                exit()
+                raise SystemExit
             except EOFError:
-                exit()
+                raise SystemExit
 
 
 class RandomBot(Player):
