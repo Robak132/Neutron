@@ -34,7 +34,7 @@ class HumanPlayer(Player):
 
     def get_selected_pawn(self, board, interface):
         """
-        Runs interface.select_pawn(), catches Exceptions and prints them using interface. 
+        Runs interface.select_pawn(), catches Exceptions and prints them using interface.
         Returns coordinates of the target.
         """
         pawn = None
@@ -56,7 +56,7 @@ class HumanPlayer(Player):
 
     def get_selected_target(self, pawn, board, interface):
         """
-        Runs interface.select_target(), catches Exceptions and prints them using interface. 
+        Runs interface.select_target(), catches Exceptions and prints them using interface.
         Returns coordinates of the target.
         """
         target = None
