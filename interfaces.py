@@ -1,5 +1,6 @@
 from errors import WrongPawn, WrongData, WrongCoordinates, WrongTarget, BlockedPawn
-import pygame, sys
+import pygame
+import sys
 
 
 class TextInterface:
@@ -69,9 +70,9 @@ class TextInterface:
                 print("\033[93mChoose game mode:\n1: One player mode with easy computer\n2: One player mode with hard computer\n3: Two players mode\n4: AI mode\033[0m")
                 game_mode = input()
             except KeyboardInterrupt:
-                raise SystemExit
+                sys.exit()
             except EOFError:
-                raise SystemExit
+                sys.exit()
 
             if game_mode in ["1", "2", "3", "4"]:
                 mode_chose = True
@@ -94,21 +95,7 @@ class TextInterface:
             print(f"{pawn}, ", end="")
         print(f"{self.board.get_possible_pawns(player)[-1]}")
 
-    def print_all(self, **kwargs):
-        # Header
-        if "player" in kwargs.keys() and "neutron" in kwargs.keys():
-            print(f"\033[93mNeutron's Turn (Player {kwargs['player'].get_id()})\033[0m\n")
-        elif "player" in kwargs.keys():
-            print(f"\033[93mPlayer's {kwargs['player'].get_id()} Turn\033[0m\n")
-        elif "winner" in kwargs.keys():
-            if kwargs["winner"] == 1:
-                print("\033[33mPlayer 1 wins...\033[0m")
-            elif kwargs["winner"] == 2:
-                print("\033[33mPlayer 2 wins...\033[0m")
-            elif kwargs["winner"] == 3:
-                print("\033[33mDraw...\033[0m")
-
-        # Board
+    def print_background(self):
         print(f"  ", end="")
         for col in range(5):
             print(f" \033[93m{col}\033[0m ", end="")
@@ -128,6 +115,20 @@ class TextInterface:
             print()
         print()
 
+    def print_header(self, header):
+        print(f"\033[93m{header}\033[0m")
+        print()
+        self.print_background()
+
+    def print_winner(self, winner):
+        print()
+        if winner == 1:
+            print("\033[93mPlayer 1 wins...\033[0m")
+        elif winner == 2:
+            print("\033[93mPlayer 2 wins...\033[0m")
+        else:
+            print("\033[93mDraw...\033[0m")
+
 
 class GUI:
     def __init__(self, board):
@@ -140,7 +141,7 @@ class GUI:
             self.load_images()
         except Exception:
             print(f"\033[91mCannot load images\033[0m")
-            raise SystemExit
+            sys.exit()
 
     def load_images(self):
         """
@@ -162,9 +163,8 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.display.quit()
                     pygame.quit()
-                    sys.exit(0)
+                    sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     row = (y - 60) // 100
@@ -196,9 +196,8 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.display.quit()
                     pygame.quit()
-                    sys.exit(0)
+                    sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     row = (y - 60) // 100
@@ -244,7 +243,6 @@ class GUI:
         while not clicked:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.display.quit()
                     pygame.quit()
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

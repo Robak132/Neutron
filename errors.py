@@ -16,3 +16,7 @@ class WrongTarget(Exception):
 
 class BlockedPawn(Exception):
     pass
+
+
+class ModeNotExist(Exception):
+    pass

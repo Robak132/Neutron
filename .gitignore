@@ -2,4 +2,4 @@
 /.pytest_cache/*
 /build/*
 /dist/*
-.vscode/settings.json
+/.vscode/settings.json

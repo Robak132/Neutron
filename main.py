@@ -1,5 +1,6 @@
 from interfaces import TextInterface, GUI
 from players import HumanPlayer, RandomBot, SmartBot
+from errors import ModeNotExist
 
 from random import choice
 from colorama import init as colorinit
@@ -40,9 +41,8 @@ class Board:
         origin_row, origin_column = origin_coordinates
         target_row, target_column = target_coordinates
 
-        _temp = self.board[target_row][target_column]
         self.board[target_row][target_column] = self.board[origin_row][origin_column]
-        self.board[origin_row][origin_column] = _temp
+        self.board[origin_row][origin_column] = 0
 
     def validate_coordinates(self, coordinates):
         """
@@ -134,21 +134,29 @@ class Board:
 class Game:
     def __init__(self, video_mode=None, game_mode=None, first_turn=None):
         self.board = Board()
-        self.interface = self.get_video_mode(self.board, video_mode)
-        self.players = self.get_game_mode(self.interface, game_mode)
+        self.interface = self.set_video_mode(self.board, video_mode)
+        self.players = self.set_game_mode(self.interface, game_mode)
 
         if first_turn is not None:
             self.first_turn = first_turn
         else:
             self.first_turn = True
 
-    def get_video_mode(self, board, video_mode=None):
-        if video_mode == 0:
+    def set_video_mode(self, board, video_mode):
+        """
+        Set video mode to selected, if None sets GUI.
+        """
+        if video_mode == 0 or video_mode is None:
             return GUI(board)
-        else:
+        elif video_mode == 1:
             return TextInterface(board)
+        else:
+            raise ModeNotExist
 
-    def get_game_mode(self, interface, game_mode=None):
+    def set_game_mode(self, interface, game_mode):
+        """
+        Sets game mode to selected, if None runs interface.select_game_mode().
+        """
         if game_mode is None:
             game_mode = interface.select_game_mode()
 
@@ -160,8 +168,13 @@ class Game:
             return [HumanPlayer(1), HumanPlayer(2)]
         elif int(game_mode) == 4:
             return [SmartBot(1), SmartBot(2)]
+        else:
+            raise ModeNotExist
 
     def get_winner(self):
+        """
+        Returns id of the winner of the game.
+        """
         neutron_row, neutron_column = self.board.get_neutron()
         if neutron_row == 0:
             return 2
@@ -173,6 +186,9 @@ class Game:
             return None
 
     def play(self):
+        """
+        Runs game.
+        """
         # Initialization
         self.active_player = choice(self.players)
 
