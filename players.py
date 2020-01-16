@@ -139,8 +139,7 @@ class SmartBot(Player):
         Neutron:
         1: Home row (instant win).
         2: Not enemy home row.
-        3: Targets that can't go to enemy home row in next turn.
-        4: Other targets.
+        3: Other targets.
         Pawns:
         1: Enemy home row (block).
         2: Other targets.
