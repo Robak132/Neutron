@@ -33,6 +33,18 @@ def test_possible_pawns():
     assert board.get_possible_pawns(player) == [(4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
 
 
+def test_possible_pawns_blocked():
+    board = Board(custom=[
+        [0, 0, 2, 2, 2],
+        [0, 0, 0, 0, 0],
+        [0, 0, 3, 0, 0],
+        [2, 2, 0, 0, 0],
+        [1, 1, 1, 1, 1]
+    ])
+    player = Player(1)
+    assert (4, 0) not in board.get_possible_pawns(player)
+
+
 def test_max_directed_path():
     board = Board()
 
