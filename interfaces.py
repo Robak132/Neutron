@@ -80,6 +80,25 @@ class TextInterface:
                 print("Invalid input. Try again.")
         return game_mode
 
+    def select_game_end(self, winner):
+        game_end_chose = False
+        while not game_end_chose:
+            try:
+                print("\033[93mDo you want to end the game?\n1: Yes\n2: No\033[0m")
+                game_end = input()
+            except KeyboardInterrupt:
+                sys.exit()
+            except EOFError:
+                sys.exit()
+
+            if game_end == "1":
+                sys.exit(0)
+            elif game_end == "2":
+                return winner
+                mode_chose = True
+            else:
+                print("Invalid input. Try again.")
+
     def print_error(self, error):
         print(f"\033[91m{error}\033[0m")
 
@@ -254,6 +273,40 @@ class GUI:
                     elif y >= 420 and y <= 470:
                         return 3
 
+    def select_game_end(self, winner):
+        # Background
+        self.screen.blit(self.menu, (0, 0))
+
+        font = pygame.font.match_font("Calibri", bold=True)
+        font = pygame.font.Font(font, 32)
+
+        self.print_winner(winner, table=False)
+
+        texts = [
+            ("Do you want to end the game?", (0, 0, 0)),
+            ("Yes", (0, 100, 0)),
+            ("No", (0, 120, 0)),
+        ]
+        for line in range(len(texts)):
+            text = font.render(texts[line][0], True, texts[line][1])
+            textRect = text.get_rect()
+            textRect.center = (300, 150 + line * 100)
+            self.screen.blit(text, textRect)
+        pygame.display.update()
+
+        clicked = False
+        while not clicked:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = event.pos
+                    if y >= 220 and y <= 270:
+                        return None
+                    elif y >= 320 and y <= 370:
+                        return winner
+
     def print_error(self, error):
         self.screen.blit(self.log, (0, 550))
         font = pygame.font.match_font("Calibri", bold=True)
@@ -310,8 +363,11 @@ class GUI:
 
         pygame.display.update()
 
-    def print_header(self, header):
-        self.print_background()
+    def print_header(self, header, table=True):
+        if table:
+            self.print_background()
+        else:
+            self.screen.blit(self.menu, (0, 0))
 
         font = pygame.font.match_font("Calibri", bold=True)
         font = pygame.font.Font(font, 32)
@@ -322,10 +378,10 @@ class GUI:
 
         pygame.display.update()
 
-    def print_winner(self, winner):
+    def print_winner(self, winner, table=True):
         if winner == 1:
-            self.print_header("Player 1 wins...")
+            self.print_header("Player 1 wins...", table)
         elif winner == 2:
-            self.print_header("Player 2 wins...")
+            self.print_header("Player 2 wins...", table)
         else:
-            self.print_header("Draw...")
+            self.print_header("Draw...", table)

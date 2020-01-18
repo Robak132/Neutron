@@ -7,6 +7,7 @@ from colorama import init as colorinit
 from os import system, name
 
 import pygame
+import sys
 
 
 # Board
@@ -142,18 +143,18 @@ class Game:
         else:
             self.first_turn = True
 
-    def set_video_mode(self, board, video_mode):
+    def set_video_mode(self, board, video_mode=None):
         """
         Set video mode to selected, if None sets GUI.
         """
-        if video_mode == 0 or video_mode is None:
+        if int(video_mode) == 0 or video_mode is None:
             return GUI(board)
-        elif video_mode == 1:
+        elif int(video_mode) == 1:
             return TextInterface(board)
         else:
             raise ModeNotExist
 
-    def set_game_mode(self, interface, game_mode):
+    def set_game_mode(self, interface, game_mode=None):
         """
         Sets game mode to selected, if None runs interface.select_game_mode().
         """
@@ -211,8 +212,8 @@ class Game:
             # Check for win
             if self.get_winner() is not None:
                 self.interface.print_winner(self.get_winner())
-                pygame.time.wait(2000)
-                return self.get_winner()
+                pygame.time.wait(1000)
+                return self.interface.select_game_end(self.get_winner())
 
             # Selecting pawn
             if not self.active_player.is_bot():
@@ -228,20 +229,37 @@ class Game:
             # Moving pawns
             self.active_player.move_pawn(pawn, target, self.board)
 
+            # Check for win
+            if self.get_winner() is not None:
+                self.interface.print_winner(self.get_winner())
+                pygame.time.wait(1000)
+                return self.interface.select_game_end(self.get_winner())
+
             # Ending turn
             if self.players.index(self.active_player) == 0:
                 self.active_player = self.players[1]
             else:
                 self.active_player = self.players[0]
 
-            # Check for win
-            if self.get_winner() is not None:
-                self.interface.print_winner(self.get_winner())
-                pygame.time.wait(2000)
-                return self.get_winner()
-
 
 if __name__ == "__main__":
     colorinit()
-    game = Game(video_mode=0)
-    game.play()
+    print(sys.argv)
+    try:
+        if len(sys.argv) == 1:
+            game = Game(video_mode=0)
+        elif len(sys.argv) == 2:
+            game = Game(video_mode=sys.argv[1])
+        elif len(sys.argv) == 3:
+            game = Game(video_mode=sys.argv[1], game_mode=sys.argv[2])
+    except ModeNotExist:
+        sys.exit("Mode don't exist")
+
+    running = True
+    while running:
+        result = game.play()
+        if result is None:
+            running = False
+        else:
+            game.set_game_mode(game.interface)
+            game.play()
