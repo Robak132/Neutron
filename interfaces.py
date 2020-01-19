@@ -7,8 +7,11 @@ class TextInterface:
     def __init__(self, board):
         self.board = board
 
-    def select_pawn(self, player):
-        _pawn = input("Select pawn (row, column):\n").replace(" ", "")
+    def select_pawn(self, player, test=None):
+        if test is None:
+            _pawn = input("Select pawn (row, column):\n").replace(" ", "")
+        else:
+            _pawn = test
         _pawn = _pawn.split(",")
 
         # Not 2 coordinates
@@ -37,8 +40,11 @@ class TextInterface:
 
         return tuple(_coordinates)
 
-    def select_target(self, pawn):
-        _target = input("Select target (row, column):\n").replace(" ", "")
+    def select_target(self, pawn, test=None):
+        if test is None:
+            _target = input("Select target (row, column):\n").replace(" ", "")
+        else:
+            _target = test
         _target = _target.split(",")
 
         # Not 2 coordinates
@@ -95,7 +101,7 @@ class TextInterface:
                 sys.exit(0)
             elif game_end == "2":
                 return winner
-                mode_chose = True
+                game_end_chose = True
             else:
                 print("Invalid input. Try again.")
 

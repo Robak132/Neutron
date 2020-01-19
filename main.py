@@ -135,6 +135,8 @@ class Board:
 class Game:
     def __init__(self, video_mode=None, game_mode=None, first_turn=None):
         self.board = Board()
+        self.game_mode = game_mode
+        self.video_mode = video_mode
         self.interface = self.set_video_mode(self.board, video_mode)
         self.players = self.set_game_mode(self.interface, game_mode)
 
@@ -213,7 +215,10 @@ class Game:
             if self.get_winner() is not None:
                 self.interface.print_winner(self.get_winner())
                 pygame.time.wait(1000)
-                return self.interface.select_game_end(self.get_winner())
+                if self.game_mode != 4:
+                    return self.interface.select_game_end(self.get_winner())
+                else:
+                    return self.get_winner()
 
             # Selecting pawn
             if not self.active_player.is_bot():
@@ -233,8 +238,10 @@ class Game:
             if self.get_winner() is not None:
                 self.interface.print_winner(self.get_winner())
                 pygame.time.wait(1000)
-                return self.interface.select_game_end(self.get_winner())
-
+                if self.game_mode != 4:
+                    return self.interface.select_game_end(self.get_winner())
+                else:
+                    return self.get_winner()
             # Ending turn
             if self.players.index(self.active_player) == 0:
                 self.active_player = self.players[1]

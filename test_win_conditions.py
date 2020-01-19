@@ -1,11 +1,4 @@
 from main import Game, Board
-from interfaces import TextInterface, GUI
-from players import HumanPlayer, RandomBot, SmartBot
-
-from random import choice
-from sys import exit
-from colorama import init as colorinit
-from os import system
 
 
 def test_player_1_wins():

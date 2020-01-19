@@ -61,10 +61,10 @@ def test_all_max_paths():
 # Game
 def test_mode():
     with pytest.raises(ModeNotExist):
-        game = Game(video_mode=10)
+        Game(video_mode=10)
 
     with pytest.raises(ModeNotExist):
-        game = Game(video_mode=1, game_mode=10)
+        Game(video_mode=1, game_mode=10)
 
 
 def test_game_ends():
