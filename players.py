@@ -90,7 +90,7 @@ class RandomBot(Player):
         """
         return choice(board.get_possible_pawns(self))
 
-    def get_selected_target(self, pawn, board, inteface):
+    def get_selected_target(self, pawn, board, interface):
         """
         Return coordinates of random valid target.
         """
@@ -133,7 +133,7 @@ class SmartBot(Player):
         else:
             return choice(secondary_pawns)
 
-    def get_selected_target(self, pawn, board, teminal):
+    def get_selected_target(self, pawn, board, terminal):
         """
         Selects target using priority rules:
         Neutron:

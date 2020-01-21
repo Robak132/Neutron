@@ -8,6 +8,10 @@ class TextInterface:
         self.board = board
 
     def select_pawn(self, player, test=None):
+        """
+        Asks player for coordinates of chosen pawn.
+        Returns coordinates (tuple).
+        """
         if test is None:
             _pawn = input("Select pawn (row, column):\n").replace(" ", "")
         else:
@@ -41,6 +45,10 @@ class TextInterface:
         return tuple(_coordinates)
 
     def select_target(self, pawn, test=None):
+        """
+        Asks player for coordinates of chosen target.
+        Returns coordinates (tuple).
+        """
         if test is None:
             _target = input("Select target (row, column):\n").replace(" ", "")
         else:
@@ -70,6 +78,10 @@ class TextInterface:
         return tuple(_coordinates)
 
     def select_game_mode(self):
+        """
+        Asks player for game mode.
+        Returns game mode id (int).
+        """
         mode_chose = False
         while not mode_chose:
             try:
@@ -87,6 +99,10 @@ class TextInterface:
         return game_mode
 
     def select_game_end(self, winner):
+        """
+        Asks player how to end the game.
+        Returns winner id or exits the game.
+        """
         game_end_chose = False
         while not game_end_chose:
             try:
@@ -184,6 +200,10 @@ class GUI:
         self.selected_target = pygame.image.load("images/selected_target.png")
 
     def select_pawn(self, player):
+        """
+        Waits for selecting pawn or exiting the game.
+        Returns coordinates (tuple).
+        """
         clicked = False
         while not clicked:
             for event in pygame.event.get():
@@ -217,6 +237,10 @@ class GUI:
                     return (row, column)
 
     def select_target(self, pawn):
+        """
+        Waits for selecting target or exiting the game.
+        Returns coordinates (tuple).
+        """
         clicked = False
         while not clicked:
             for event in pygame.event.get():
@@ -239,6 +263,10 @@ class GUI:
                     return (row, column)
 
     def select_game_mode(self):
+        """
+        Draws game menu and wait for selecting game mode or exiting the game.
+        Returns game mode id (int).
+        """
         # Background
         self.screen.blit(self.menu, (0, 0))
 
@@ -280,6 +308,10 @@ class GUI:
                         return 3
 
     def select_game_end(self, winner):
+        """
+        Draws end game menu and wait for selecting game end or exiting the game.
+        Returns winner id (int).
+        """
         # Background
         self.screen.blit(self.menu, (0, 0))
 
